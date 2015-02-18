@@ -6,7 +6,7 @@ class DockerRegistryClient(object):
     def __init__(self, host):
         self._base_client = BaseClient(host)
         self._repositories = {}
-        self._load_data()
+        self.refresh()
 
     def namespaces(self):
         return self._repositories.keys()
@@ -14,7 +14,7 @@ class DockerRegistryClient(object):
     def repositories(self, namespace):
         return self._repositories[namespace]
 
-    def _load_data(self):
+    def refresh(self):
         _repositories = self._base_client.search()['results']
         for repository in _repositories:
             name = repository['name']
