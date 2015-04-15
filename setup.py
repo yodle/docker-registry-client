@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="docker_registry_client",
-    version="0.2",
+    version="0.3",
     description='Client for Docker Registry V1',
     author='John Downs',
     author_email='john.downs@yodle.com',

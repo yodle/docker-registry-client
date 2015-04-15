@@ -89,7 +89,7 @@ class BaseClient(object):
         try:
             return response.json()
         except ValueError as ve:
-            logging.error("Unable to decode json from response " + response.text)
+            logging.error("Unable to decode json from response " + response.text + " for url: " + url)
             raise ve
 
 
