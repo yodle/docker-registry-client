@@ -2,6 +2,11 @@ import logging
 from requests import get, put, delete
 import json
 
+# urllib3 throws some ssl warnings with older versions of python
+#   they're probably ok for the registry client to ignore
+import warnings
+warnings.filterwarnings("ignore")
+
 
 class BaseClient(object):
     IMAGE_LAYER = '/v1/images/{image_id}/layer'
@@ -86,10 +91,10 @@ class BaseClient(object):
             data = json.dumps(data)
         response = method(self.host + url.format(**kwargs),
                           data=data, headers=header)
-        try:
+        if response.ok:
             return response.json()
-        except ValueError as ve:
-            logging.error("Unable to decode json from response " + response.text + " for url: " + url)
-            raise ve
+        else:
+            logging.error("Unable to decode json for response %s for url %s" % (response.text, url))
+            return {}
 
 
