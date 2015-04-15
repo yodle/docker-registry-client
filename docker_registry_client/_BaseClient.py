@@ -1,3 +1,4 @@
+import logging
 from requests import get, put, delete
 import json
 
@@ -85,6 +86,10 @@ class BaseClient(object):
             data = json.dumps(data)
         response = method(self.host + url.format(**kwargs),
                           data=data, headers=header)
-        return response.json()
+        try:
+            return response.json()
+        except ValueError as ve:
+            logging.error("Unable to decode json from response " + response.text)
+            raise ve
 
 
