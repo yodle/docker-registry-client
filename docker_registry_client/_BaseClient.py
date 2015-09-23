@@ -8,7 +8,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-class BaseClient(object):
+class BaseClientV1(object):
     IMAGE_LAYER = '/v1/images/{image_id}/layer'
     IMAGE_JSON = '/v1/images/{image_id}/json'
     IMAGE_ANCESTRY = '/v1/images/{image_id}/ancestry'
@@ -17,6 +17,7 @@ class BaseClient(object):
 
     def __init__(self, host):
         self.host = host
+        self.version = 1
 
     def search(self, q=''):
         """GET /v1/search"""
@@ -91,10 +92,15 @@ class BaseClient(object):
             data = json.dumps(data)
         response = method(self.host + url.format(**kwargs),
                           data=data, headers=header)
+        response.raise_for_status()
         if response.ok:
-            return response.json()
-        else:
-            logging.error("Unable to decode json for response %s for url %s" % (response.text, url))
-            return {}
+            try:
+                return response.json()
+            except ValueError:
+                logging.error("Unable to decode json for response %r, url %s",
+                              response.text, url)
+                raise
 
 
+def BaseClient(host):
+    return BaseClientV1(host)

@@ -12,6 +12,9 @@ class TestDockerRegistryClient(object):
             def __init__(self):
                 self.ok = True
 
+            def raise_for_status(self):
+                pass
+
             def json(self):
                 return {'results': {}}
 

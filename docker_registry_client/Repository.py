@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from docker_registry_client.Image import Image
 
 
-class Repository(object):
+class RepositoryV1(object):
     def __init__(self, client, namespace, name):
         self._client = client
         self.namespace = namespace
@@ -12,7 +12,8 @@ class Repository(object):
         self.refresh()
 
     def __repr__(self):
-        return self.namespace + '/' + self.name
+        return 'RepositoryV1({ns}/{name})'.format(ns=self.namespace,
+                                                  name=self.name)
 
     def refresh(self):
         self._images = self._client.get_repository_tags(self.namespace,
@@ -41,3 +42,6 @@ class Repository(object):
         raise NotImplementedError()
 
 
+def Repository(client, namespace, name):
+    assert client.version == 1
+    return RepositoryV1(client, namespace, name)
