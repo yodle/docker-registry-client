@@ -15,5 +15,5 @@ setup(
     keywords='docker docker-registry REST',
     packages=find_packages(),
     install_requires=['requests>=2.4.3',
-                      'mock>=1.0.1'],
+                      'flexmock'],
 )
