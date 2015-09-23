@@ -1,4 +1,6 @@
-from Image import Image
+from __future__ import absolute_import
+
+from docker_registry_client.Image import Image
 
 
 class Repository(object):
