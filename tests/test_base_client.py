@@ -1,25 +1,24 @@
 from __future__ import absolute_import
 
-from docker_registry_client._BaseClient import BaseClient
+from docker_registry_client._BaseClient import BaseClientV1, BaseClientV2
+from tests.mock_registry import (mock_v1_registry,
+                                 mock_v2_registry,
+                                 TEST_NAME,
+                                 TEST_TAG)
 
-from flexmock import flexmock
-from docker_registry_client import _BaseClient
 
-
-class TestBaseClient(object):
+class TestBaseClientV1(object):
     def test_check_status(self):
-        class Response(object):
-            def __init__(self):
-                self.ok = True
+        url = mock_v1_registry()
+        BaseClientV1(url).check_status()
 
-            def raise_for_status(self):
-                pass
 
-            def json(self):
-                return {}
+class TestBaseClientV2(object):
+    def test_check_status(self):
+        url = mock_v2_registry()
+        BaseClientV2(url).check_status()
 
-        (flexmock(_BaseClient)
-            .should_receive('get')
-            .and_return(Response())
-            .once())
-        BaseClient('https://host:5000').check_status()
+    def test_get_manifest_and_digest(self):
+        url = mock_v2_registry()
+        manifest, digest = BaseClientV2(url).get_manifest_and_digest(TEST_NAME,
+                                                                     TEST_TAG)
