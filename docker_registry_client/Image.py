@@ -1,4 +1,4 @@
-class Image(object):
+class ImageV1(object):
     def __init__(self, image_id, client):
         self.image_id = image_id
         self._client = client
@@ -22,3 +22,8 @@ class Image(object):
 
     def ancestry(self):
         return self._client.get_image_ancestry(self.image_id)
+
+
+def Image(image_id, client):
+    assert client.version == 1
+    return ImageV1(client, image_id)

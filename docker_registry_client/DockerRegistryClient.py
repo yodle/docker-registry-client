@@ -8,21 +8,50 @@ class DockerRegistryClient(object):
     def __init__(self, host):
         self._base_client = BaseClient(host)
         self._repositories = {}
+        self._repositories_by_namespace = {}
         self.refresh()
 
     def namespaces(self):
-        return self._repositories.keys()
+        return list(self._repositories_by_namespace.keys())
 
-    def repositories(self, namespace):
-        return self._repositories[namespace]
+    def repositories(self, namespace=None):
+        if namespace:
+            return self._repositories_by_namespace[namespace]
+
+        return self._repositories
 
     def refresh(self):
+        if self._base_client.version == 1:
+            self._refresh_v1()
+        else:
+            assert self._base_client.version == 2
+            self._refresh_v2()
+
+    def _refresh_v1(self):
         _repositories = self._base_client.search()['results']
         for repository in _repositories:
             name = repository['name']
-            ns, repo = name.split('/')
-            r = Repository(self._base_client, ns, repo)
-            if ns in self._repositories:
-                self._repositories[ns].append(r)
-            else:
-                self._repositories[ns] = [r]
+            ns, repo = name.split('/', 1)
+
+            r = Repository(self._base_client, repo, namespace=ns)
+            self._repositories_by_namespace.setdefault(ns, {})
+            self._repositories_by_namespace[ns][name] = r
+            self._repositories[name] = r
+
+    def _refresh_v2(self):
+        repositories = self._base_client.catalog()['repositories']
+        for name in repositories:
+            try:
+                ns, repo = name.split('/', 1)
+            except ValueError:
+                ns = None
+                repo = name
+
+            r = Repository(self._base_client, repo, namespace=ns)
+
+            if ns is None:
+                ns = 'library'
+
+            self._repositories_by_namespace.setdefault(ns, {})
+            self._repositories_by_namespace[ns][name] = r
+            self._repositories[name] = r

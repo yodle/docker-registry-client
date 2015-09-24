@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
 from docker_registry_client.Image import Image
-from docker_registry_client._BaseClient import BaseClient
+from docker_registry_client._BaseClient import BaseClientV1
+from tests.mock_registry import mock_v1_registry
 
 
 class TestImage(object):
     def test_init(self):
-        Image('test_image_id', BaseClient('https://host:5000'))
+        url = mock_v1_registry()
+        Image('test_image_id', BaseClientV1(url))

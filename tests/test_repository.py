@@ -1,24 +1,20 @@
 from __future__ import absolute_import
 
 from docker_registry_client.Repository import Repository
-from docker_registry_client._BaseClient import BaseClient
-
-from flexmock import flexmock
-from docker_registry_client import _BaseClient
+from docker_registry_client._BaseClient import BaseClientV1, BaseClientV2
+from tests.mock_registry import (mock_v1_registry,
+                                 mock_v2_registry,
+                                 TEST_NAMESPACE,
+                                 TEST_REPO,
+                                 TEST_NAME)
 
 
 class TestRepository(object):
-    def test_init(self):
-        class Response(object):
-            def __init__(self):
-                self.ok = True
+    def test_initv1(self):
+        url = mock_v1_registry()
+        repo = Repository(BaseClientV1(url), TEST_REPO,
+                          namespace=TEST_NAMESPACE)
 
-            def json(self):
-                return {}
-
-        (flexmock(_BaseClient)
-            .should_receive('get')
-            .and_return(Response())
-            .once())
-        client = BaseClient('https://host:5000')
-        repo = Repository(client, 'namespace', 'repo')
+    def test_initv2(self):
+        url = mock_v2_registry()
+        repo = Repository(BaseClientV2(url), TEST_NAME)

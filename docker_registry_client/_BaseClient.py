@@ -1,5 +1,6 @@
 import logging
 from requests import get, put, delete
+from requests.exceptions import HTTPError
 import json
 
 # urllib3 throws some ssl warnings with older versions of python
@@ -8,15 +9,55 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-class BaseClient(object):
+class CommonBaseClient(object):
+    def __init__(self, host):
+        self.host = host
+
+    def _http_response(self, url, method, data=None, **kwargs):
+        """url -> full target url
+           method -> method from requests
+           data -> request body
+           kwargs -> url formatting args
+        """
+        header = {'content-type': 'application/json'}
+        if data:
+            data = json.dumps(data)
+        response = method(self.host + url.format(**kwargs),
+                          data=data, headers=header)
+        if not response.ok:
+            logging.error("Error response: %r", response.text)
+            response.raise_for_status()
+
+        return response
+
+    def _http_call(self, url, method, data=None, **kwargs):
+        """url -> full target url
+           method -> method from requests
+           data -> request body
+           kwargs -> url formatting args
+        """
+        response = self._http_response(url, method, data=data, **kwargs)
+        if not response.content:
+            return {}
+
+        try:
+            return response.json()
+        except ValueError:
+            logging.error("Unable to decode json for response %r, url %s",
+                          response.text, url.format(**kwargs))
+            raise
+
+
+class BaseClientV1(CommonBaseClient):
     IMAGE_LAYER = '/v1/images/{image_id}/layer'
     IMAGE_JSON = '/v1/images/{image_id}/json'
     IMAGE_ANCESTRY = '/v1/images/{image_id}/ancestry'
     REPO = '/v1/repositories/{namespace}/{repository}'
     TAGS = REPO + '/tags'
 
-    def __init__(self, host):
-        self.host = host
+    @property
+    def version(self):
+        return 1
 
     def search(self, q=''):
         """GET /v1/search"""
@@ -80,21 +121,61 @@ class BaseClient(object):
         return self._http_call(self.REPO, delete,
                                namespace=namespace, repository=repository)
 
-    def _http_call(self, url, method, data=None, **kwargs):
-        """url -> full target url
-           method -> method from requests
-           data -> request body
-           kwargs -> url formatting args
-        """
-        header = {'content-type': 'application/json'}
-        if data:
-            data = json.dumps(data)
-        response = method(self.host + url.format(**kwargs),
-                          data=data, headers=header)
-        if response.ok:
-            return response.json()
-        else:
-            logging.error("Unable to decode json for response %s for url %s" % (response.text, url))
-            return {}
+
+class BaseClientV2(CommonBaseClient):
+    LIST_TAGS = '/v2/{name}/tags/list'
+    MANIFEST = '/v2/{name}/manifests/{reference}'
+    BLOB = '/v2/{name}/blobs/{digest}'
+
+    def __init__(self, *args, **kwargs):
+        super(BaseClientV2, self).__init__(*args, **kwargs)
+        self._manifest_digests = {}
+
+    @property
+    def version(self):
+        return 2
+
+    def check_status(self):
+        return self._http_call('/v2/', get)
+
+    def catalog(self):
+        return self._http_call('/v2/_catalog', get)
+
+    def get_repository_tags(self, name):
+        return self._http_call(self.LIST_TAGS, get, name=name)
+
+    def get_manifest_and_digest(self, name, reference):
+        response = self._http_response(self.MANIFEST, get,
+                                       name=name, reference=reference)
+        self._cache_manifest_digest(name, reference, response=response)
+        return (response.json(), self._manifest_digests[name, reference])
+
+    def delete_manifest(self, name, digest):
+        return self._http_call(self.MANIFEST, delete,
+                               name=name, reference=digest)
+
+    def delete_blob(self, name, digest):
+        return self._http_call(self.BLOB, delete,
+                               name=name, digest=digest)
+
+    def _cache_manifest_digest(self, name, reference, response=None):
+        if not response:
+            # TODO: create our own digest
+            raise NotImplementedError()
+
+        untrusted_digest = response.headers.get('Docker-Content-Digest')
+        self._manifest_digests[(name, reference)] = untrusted_digest
 
 
+def BaseClient(host):
+    # Try V2 first
+    v2_client = BaseClientV2(host)
+    try:
+        v2_client.check_status()
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            return BaseClientV1(host)
+
+        raise
+    else:
+        return v2_client
