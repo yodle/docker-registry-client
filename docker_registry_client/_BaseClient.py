@@ -37,11 +37,14 @@ class CommonBaseClient(object):
            kwargs -> url formatting args
         """
         response = self._http_response(url, method, data=data, **kwargs)
+        if not response.content:
+            return {}
+
         try:
             return response.json()
         except ValueError:
             logging.error("Unable to decode json for response %r, url %s",
-                          response.text, url)
+                          response.text, url.format(**kwargs))
             raise
 
 
