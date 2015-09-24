@@ -11,7 +11,7 @@ class DockerRegistryClient(object):
         self.refresh()
 
     def namespaces(self):
-        return self._repositories.keys()
+        return list(self._repositories.keys())
 
     def repositories(self, namespace):
         return self._repositories[namespace]

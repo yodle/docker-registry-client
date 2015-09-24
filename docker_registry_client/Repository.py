@@ -20,7 +20,7 @@ class RepositoryV1(object):
                                                         self.name)
 
     def tags(self):
-        return self._images.keys()
+        return list(self._images.keys())
 
     def data(self, tag):
         return self._client.get_tag_json(self.namespace, self.name, tag)
