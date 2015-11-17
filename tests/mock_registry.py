@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from flexmock import flexmock
 from docker_registry_client import _BaseClient
+import json
 from requests.exceptions import HTTPError
 from requests.models import Response
 
@@ -21,6 +22,13 @@ class MockResponse(object):
         self.data = data
         self.text = text or ''
         self.headers = headers or {}
+
+    @property
+    def content(self):
+        if self.data is None:
+            return None
+
+        return json.dumps(self.data).encode()
 
     def raise_for_status(self):
         if not self.ok:
