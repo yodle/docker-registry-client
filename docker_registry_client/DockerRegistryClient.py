@@ -5,8 +5,8 @@ from docker_registry_client.Repository import Repository
 
 
 class DockerRegistryClient(object):
-    def __init__(self, host):
-        self._base_client = BaseClient(host)
+    def __init__(self, host, verify_ssl=None):
+        self._base_client = BaseClient(host, verify_ssl=verify_ssl)
         self._repositories = {}
         self._repositories_by_namespace = {}
         self.refresh()

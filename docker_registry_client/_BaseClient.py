@@ -10,8 +10,12 @@ warnings.filterwarnings("ignore")
 
 
 class CommonBaseClient(object):
-    def __init__(self, host):
+    def __init__(self, host, verify_ssl=None):
         self.host = host
+
+        self.method_kwargs = {}
+        if verify_ssl is not None:
+            self.method_kwargs['verify'] = verify_ssl
 
     def _http_response(self, url, method, data=None, **kwargs):
         """url -> full target url
@@ -23,7 +27,7 @@ class CommonBaseClient(object):
         if data:
             data = json.dumps(data)
         response = method(self.host + url.format(**kwargs),
-                          data=data, headers=header)
+                          data=data, headers=header, **self.method_kwargs)
         if not response.ok:
             logging.error("Error response: %r", response.text)
             response.raise_for_status()
@@ -167,14 +171,14 @@ class BaseClientV2(CommonBaseClient):
         self._manifest_digests[(name, reference)] = untrusted_digest
 
 
-def BaseClient(host):
+def BaseClient(host, verify_ssl=None):
     # Try V2 first
-    v2_client = BaseClientV2(host)
+    v2_client = BaseClientV2(host, verify_ssl=verify_ssl)
     try:
         v2_client.check_status()
     except HTTPError as e:
         if e.response.status_code == 404:
-            return BaseClientV1(host)
+            return BaseClientV1(host, verify_ssl=verify_ssl)
 
         raise
     else:
