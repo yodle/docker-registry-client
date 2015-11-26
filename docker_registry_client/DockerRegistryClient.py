@@ -9,9 +9,11 @@ class DockerRegistryClient(object):
         self._base_client = BaseClient(host, verify_ssl=verify_ssl)
         self._repositories = {}
         self._repositories_by_namespace = {}
-        self.refresh()
 
     def namespaces(self):
+        if not self._repositories:
+            self.refresh()
+
         return list(self._repositories_by_namespace.keys())
 
     def repository(self, repository, namespace=None):
@@ -23,6 +25,9 @@ class DockerRegistryClient(object):
         return Repository(self._base_client, repository, namespace=namespace)
 
     def repositories(self, namespace=None):
+        if not self._repositories:
+            self.refresh()
+
         if namespace:
             return self._repositories_by_namespace[namespace]
 
