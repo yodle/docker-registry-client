@@ -17,6 +17,26 @@ class TestDockerRegistryClient(object):
         client = DockerRegistryClient(url)
         assert client.namespaces() == [TEST_NAMESPACE]
 
+    @pytest.mark.parametrize('version', [1, 2])
+    @pytest.mark.parametrize(('repository', 'namespace'), [
+        (TEST_REPO, None),
+        (TEST_REPO, TEST_NAMESPACE),
+        ('{0}/{1}'.format(TEST_NAMESPACE, TEST_REPO), None),
+    ])
+    def test_repository(self, version, repository, namespace):
+        url = mock_registry(version)
+        client = DockerRegistryClient(url)
+        repository = client.repository(repository, namespace=namespace)
+        assert isinstance(repository, MockRegistry)
+
+    @pytest.mark.parametrize('version', [1, 2])
+    def test_repository(self, version):
+        url = mock_registry(version)
+        client = DockerRegistryClient(url)
+        with pytest.raises(RuntimeError):
+            client.repository('{0}/{1}'.format(TEST_NAMESPACE, TEST_REPO),
+                              namespace=TEST_NAMESPACE)
+
     @pytest.mark.parametrize('namespace', [TEST_NAMESPACE, None])
     @pytest.mark.parametrize('version', [1, 2])
     def test_repositories(self, version, namespace):
