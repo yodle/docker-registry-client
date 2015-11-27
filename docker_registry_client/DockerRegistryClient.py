@@ -5,8 +5,17 @@ from docker_registry_client.Repository import Repository
 
 
 class DockerRegistryClient(object):
-    def __init__(self, host, verify_ssl=None):
-        self._base_client = BaseClient(host, verify_ssl=verify_ssl)
+    def __init__(self, host, verify_ssl=None, api_version=None):
+        """
+        Constructor
+
+        :param host: str, registry URL including scheme
+        :param verify_ssl: bool, whether to verify SSL certificate
+        :param api_version: int, API version to require
+        """
+
+        self._base_client = BaseClient(host, verify_ssl=verify_ssl,
+                                       api_version=api_version)
         self._repositories = {}
         self._repositories_by_namespace = {}
 

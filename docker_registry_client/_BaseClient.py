@@ -177,18 +177,25 @@ class BaseClientV2(CommonBaseClient):
         self._manifest_digests[(name, reference)] = untrusted_digest
 
 
-def BaseClient(host, verify_ssl=None):
-    # Try V2 first
-    v2_client = BaseClientV2(host, verify_ssl=verify_ssl)
-    try:
+def BaseClient(host, verify_ssl=None, api_version=None):
+    if api_version == 1:
+        return BaseClientV1(host, verify_ssl=verify_ssl)
+    elif api_version == 2:
+        return BaseClientV2(host, verify_ssl=verify_ssl)
+    elif api_version is None:
+        # Try V2 first
         logger.debug("checking for v2 API")
-        v2_client.check_status()
-    except HTTPError as e:
-        if e.response.status_code == 404:
-            logger.debug("falling back to v1 API")
-            return BaseClientV1(host, verify_ssl=verify_ssl)
+        v2_client = BaseClientV2(host, verify_ssl=verify_ssl)
+        try:
+            v2_client.check_status()
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                logger.debug("falling back to v1 API")
+                return BaseClientV1(host, verify_ssl=verify_ssl)
 
-        raise
+            raise
+        else:
+            logger.debug("using v2 API")
+            return v2_client
     else:
-        logger.debug("using v2 API")
-        return v2_client
+        raise RuntimeError('invalid api_version')
