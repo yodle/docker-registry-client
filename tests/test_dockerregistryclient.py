@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from docker_registry_client import DockerRegistryClient
+from docker_registry_client.Repository import BaseRepository
 import pytest
 from tests.mock_registry import (mock_registry,
                                  mock_v2_registry,
@@ -27,10 +28,10 @@ class TestDockerRegistryClient(object):
         url = mock_registry(version)
         client = DockerRegistryClient(url)
         repository = client.repository(repository, namespace=namespace)
-        assert isinstance(repository, MockRegistry)
+        assert isinstance(repository, BaseRepository)
 
     @pytest.mark.parametrize('version', [1, 2])
-    def test_repository(self, version):
+    def test_repository_namespace_incorrect(self, version):
         url = mock_registry(version)
         client = DockerRegistryClient(url)
         with pytest.raises(RuntimeError):
