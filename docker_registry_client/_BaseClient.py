@@ -9,6 +9,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+logger = logging.getLogger(__name__)
+
+
 class CommonBaseClient(object):
     def __init__(self, host, verify_ssl=None):
         self.host = host
@@ -26,10 +29,13 @@ class CommonBaseClient(object):
         header = {'content-type': 'application/json'}
         if data:
             data = json.dumps(data)
-        response = method(self.host + url.format(**kwargs),
+        path = url.format(**kwargs)
+        logger.debug("%s %s", method.__name__.upper(), path)
+        response = method(self.host + path,
                           data=data, headers=header, **self.method_kwargs)
+        logger.debug("%s %s", response.status_code, response.reason)
         if not response.ok:
-            logging.error("Error response: %r", response.text)
+            logger.error("Error response: %r", response.text)
             response.raise_for_status()
 
         return response
@@ -47,8 +53,8 @@ class CommonBaseClient(object):
         try:
             return response.json()
         except ValueError:
-            logging.error("Unable to decode json for response %r, url %s",
-                          response.text, url.format(**kwargs))
+            logger.error("Unable to decode json for response %r, url %s",
+                         response.text, url.format(**kwargs))
             raise
 
 
@@ -175,11 +181,14 @@ def BaseClient(host, verify_ssl=None):
     # Try V2 first
     v2_client = BaseClientV2(host, verify_ssl=verify_ssl)
     try:
+        logger.debug("checking for v2 API")
         v2_client.check_status()
     except HTTPError as e:
         if e.response.status_code == 404:
+            logger.debug("falling back to v1 API")
             return BaseClientV1(host, verify_ssl=verify_ssl)
 
         raise
     else:
+        logger.debug("using v2 API")
         return v2_client
