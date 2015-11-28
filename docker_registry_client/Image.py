@@ -17,7 +17,7 @@ class ImageV1(object):
         return self.get_json()[field]
 
     def put_json(self, data):
-        #return self._client.put_image_layer(self.image_id, data)
+        # return self._client.put_image_layer(self.image_id, data)
         raise NotImplementedError()
 
     def ancestry(self):

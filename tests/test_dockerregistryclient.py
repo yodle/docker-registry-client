@@ -86,3 +86,4 @@ class TestDockerRegistryClient(object):
             with pytest.raises(HTTPError):
                 client = DockerRegistryClient(url,
                                               api_version=client_api_version)
+                client.refresh()

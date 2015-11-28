@@ -12,7 +12,8 @@ TEST_NAMESPACE = 'library'
 TEST_REPO = 'myrepo'
 TEST_NAME = '%s/%s' % (TEST_NAMESPACE, TEST_REPO)
 TEST_TAG = 'latest'
-TEST_MANIFEST_DIGEST = 'sha256:6c3c624b58dbbcd3c0dd82b4c53f04194d1247c6eebdaab7c610cf7d66709b3b'
+TEST_MANIFEST_DIGEST = '''\
+sha256:6c3c624b58dbbcd3c0dd82b4c53f04194d1247c6eebdaab7c610cf7d66709b3b'''
 
 
 class MockResponse(object):
