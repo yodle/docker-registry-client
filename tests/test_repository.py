@@ -12,9 +12,8 @@ from tests.mock_registry import (mock_v1_registry,
 class TestRepository(object):
     def test_initv1(self):
         url = mock_v1_registry()
-        repo = Repository(BaseClientV1(url), TEST_REPO,
-                          namespace=TEST_NAMESPACE)
+        Repository(BaseClientV1(url), TEST_REPO, namespace=TEST_NAMESPACE)
 
     def test_initv2(self):
         url = mock_v2_registry()
-        repo = Repository(BaseClientV2(url), TEST_NAME)
+        Repository(BaseClientV2(url), TEST_NAME)
