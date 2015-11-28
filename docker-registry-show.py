@@ -34,12 +34,13 @@ class CLI(object):
                                  action='store_true')
         self.parser.add_argument('--no-verify-ssl', dest='verify_ssl',
                                  action='store_false')
+        self.parser.add_argument('--api-version', metavar='VER', type=int)
 
         self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
                                  help='registry URL (including scheme)')
         self.parser.add_argument('repository', metavar='REPOSITORY', nargs='?')
 
-        self.parser.set_defaults(verify_ssl=True)
+        self.parser.set_defaults(verify_ssl=True, api_version=None)
 
     def run(self):
         args = self.parser.parse_args()
@@ -52,8 +53,13 @@ class CLI(object):
 
         logging.basicConfig(**basic_config_args)
 
+        kwargs = {}
+        if args.api_version:
+            kwargs['api_version'] = args.api_version
+
         client = DockerRegistryClient(args.registry[0],
-                                      verify_ssl=args.verify_ssl)
+                                      verify_ssl=args.verify_ssl,
+                                      **kwargs)
 
         if args.repository:
             self.show_tags(client, args.repository)
