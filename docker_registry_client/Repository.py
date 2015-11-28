@@ -18,7 +18,10 @@ class BaseRepository(object):
 
 
 class RepositoryV1(BaseRepository):
-    def __init__(self, client, repository, namespace):
+    def __init__(self, client, repository, namespace=None):
+        if namespace is None:
+            namespace = 'library'
+
         super(RepositoryV1, self).__init__(client, repository,
                                            namespace=namespace)
         self._images = None

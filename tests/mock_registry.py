@@ -18,10 +18,11 @@ TEST_MANIFEST_DIGEST = 'sha256:6c3c624b58dbbcd3c0dd82b4c53f04194d1247c6eebdaab7c
 class MockResponse(object):
     def __init__(self, code, data=None, text=None, headers=None):
         self.ok = (code >= 200 and code < 400)
-        self.code = code
+        self.status_code = code
         self.data = data
         self.text = text or ''
         self.headers = headers or {}
+        self.reason = ''
 
     @property
     def content(self):
@@ -33,7 +34,7 @@ class MockResponse(object):
     def raise_for_status(self):
         if not self.ok:
             response = Response()
-            response.status_code = self.code
+            response.status_code = self.status_code
             raise HTTPError(response=response)
 
     def json(self):
@@ -69,6 +70,7 @@ class MockRegistry(object):
 
 class MockV1Registry(MockRegistry):
     TAGS = MockRegistry.format('/v1/repositories/{namespace}/{repo}/tags')
+    TAGS_LIBRARY = MockRegistry.format('/v1/repositories/{repo}/tags')
 
     GET_MAP = {
         '/v1/_ping': MockResponse(200),
@@ -77,6 +79,8 @@ class MockV1Registry(MockRegistry):
             'results': [{'name': '%s/%s' % (TEST_NAMESPACE, TEST_REPO)}]}),
 
         TAGS: MockResponse(200, data={TEST_TAG: ''}),
+
+        TAGS_LIBRARY: MockResponse(200, data={TEST_TAG: ''}),
     }
 
 
@@ -88,6 +92,7 @@ def mock_v1_registry():
 
 class MockV2Registry(MockRegistry):
     TAGS = MockRegistry.format('/v2/{name}/tags/list')
+    TAGS_LIBRARY = MockRegistry.format('/v2/{repo}/tags/list')
     MANIFEST_TAG = MockRegistry.format('/v2/{name}/manifests/{tag}')
     MANIFEST_DIGEST = MockRegistry.format('/v2/{name}/manifests/{digest}')
 
@@ -97,6 +102,10 @@ class MockV2Registry(MockRegistry):
         '/v2/_catalog': MockResponse(200, data={'repositories': [TEST_NAME]}),
 
         TAGS:
+        MockResponse(200, data={'name': TEST_NAME,
+                                'tags': [TEST_TAG]}),
+
+        TAGS_LIBRARY:
         MockResponse(200, data={'name': TEST_NAME,
                                 'tags': [TEST_TAG]}),
 
