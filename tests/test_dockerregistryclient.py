@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from docker_registry_client import DockerRegistryClient
 from docker_registry_client.Repository import BaseRepository
 import pytest
+from requests import HTTPError
 from tests.mock_registry import (mock_registry,
                                  mock_v2_registry,
                                  TEST_NAMESPACE,
@@ -66,3 +67,22 @@ class TestDockerRegistryClient(object):
         repository = client.repositories()[TEST_NAME]
         manifest, digest = repository.manifest(TEST_TAG)
         repository.delete_manifest(digest)
+
+    @pytest.mark.parametrize(('client_api_version',
+                              'registry_api_version',
+                              'should_succeed'), [
+        (1, 1, True),
+        (2, 2, True),
+        (1, 2, False),
+        (2, 1, False),
+    ])
+    def test_api_version(self, client_api_version, registry_api_version,
+                         should_succeed):
+        url = mock_registry(registry_api_version)
+        if should_succeed:
+            client = DockerRegistryClient(url, api_version=client_api_version)
+            assert client._base_client.version == client_api_version
+        else:
+            with pytest.raises(HTTPError):
+                client = DockerRegistryClient(url,
+                                              api_version=client_api_version)
