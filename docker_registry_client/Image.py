@@ -1,5 +1,5 @@
 class ImageV1(object):
-    def __init__(self, image_id, client):
+    def __init__(self, client, image_id):
         self.image_id = image_id
         self._client = client
 
