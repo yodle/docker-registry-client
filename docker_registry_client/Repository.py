@@ -25,7 +25,6 @@ class RepositoryV1(BaseRepository):
         super(RepositoryV1, self).__init__(client, repository,
                                            namespace=namespace)
         self._images = None
-        self.refresh()
 
     def __repr__(self):
         return 'RepositoryV1({name})'.format(name=self.name)
@@ -35,12 +34,18 @@ class RepositoryV1(BaseRepository):
                                                         self.repository)
 
     def tags(self):
+        if self._images is None:
+            self.refresh()
+
         return list(self._images.keys())
 
     def data(self, tag):
         return self._client.get_tag_json(self.namespace, self.repository, tag)
 
     def image(self, tag):
+        if self._images is None:
+            self.refresh()
+
         image_id = self._images[tag]
         return Image(image_id, self._client)
 
@@ -61,13 +66,15 @@ class RepositoryV2(BaseRepository):
     def __init__(self, client, repository, namespace=None):
         super(RepositoryV2, self).__init__(client, repository,
                                            namespace=namespace)
-        self._tags = []
-        self.refresh()
+        self._tags = None
 
     def __repr__(self):
         return 'RepositoryV2({name})'.format(name=self.name)
 
     def tags(self):
+        if self._tags is None:
+            self.refresh()
+
         return self._tags
 
     def manifest(self, tag):
