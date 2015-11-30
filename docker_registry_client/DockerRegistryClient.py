@@ -16,6 +16,7 @@ class DockerRegistryClient(object):
 
         self._base_client = BaseClient(host, verify_ssl=verify_ssl,
                                        api_version=api_version)
+        self.api_version = self._base_client.version
         self._repositories = {}
         self._repositories_by_namespace = {}
 

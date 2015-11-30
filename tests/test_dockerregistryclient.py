@@ -14,6 +14,12 @@ from tests.mock_registry import (mock_registry,
 
 class TestDockerRegistryClient(object):
     @pytest.mark.parametrize('version', [1, 2])
+    def test_api_version_in_use(self, version):
+        url = mock_registry(version)
+        client = DockerRegistryClient(url)
+        assert client.api_version == version
+
+    @pytest.mark.parametrize('version', [1, 2])
     def test_namespaces(self, version):
         url = mock_registry(version)
         client = DockerRegistryClient(url)
@@ -81,7 +87,7 @@ class TestDockerRegistryClient(object):
         url = mock_registry(registry_api_version)
         if should_succeed:
             client = DockerRegistryClient(url, api_version=client_api_version)
-            assert client._base_client.version == client_api_version
+            assert client.api_version == client_api_version
         else:
             with pytest.raises(HTTPError):
                 client = DockerRegistryClient(url,
