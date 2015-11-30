@@ -1,5 +1,6 @@
 # Docker Registry Client
 
+https://travis-ci.org/yodle/docker-registry-client.svg
 
 *Description*
 
