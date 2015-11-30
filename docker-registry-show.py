@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import argparse
 from docker_registry_client import DockerRegistryClient
+import json
 import logging
 import requests
 
@@ -38,7 +39,10 @@ class CLI(object):
 
         self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
                                  help='registry URL (including scheme)')
-        self.parser.add_argument('repository', metavar='REPOSITORY', nargs='?')
+        self.parser.add_argument('repository', metavar='REPOSITORY', nargs='?',
+                                 help='repository (including namespace)')
+        self.parser.add_argument('ref', metavar='REF', nargs='?',
+                                 help='tag or digest')
 
         self.parser.set_defaults(verify_ssl=True, api_version=None)
 
@@ -62,7 +66,10 @@ class CLI(object):
                                       **kwargs)
 
         if args.repository:
-            self.show_tags(client, args.repository)
+            if args.ref:
+                self.show_manifest(client, args.repository, args.ref)
+            else:
+                self.show_tags(client, args.repository)
         else:
             self.show_repositories(client)
 
@@ -91,6 +98,25 @@ class CLI(object):
             print("Tags in repository {0}:".format(repository))
             for tag in repo.tags():
                 print("  - {0}".format(tag))
+
+    def show_manifest(self, client, repository, ref):
+        try:
+            repo = client.repository(repository)
+        except requests.HTTPError as e:
+            if e.response.status_code == requests.codes.not_found:
+                print("Repository {0} not found".format(repository))
+            else:
+                raise
+        else:
+            assert client.api_version in [1, 2]
+            if client.api_version == 2:
+                manifest, digest = repo.manifest(ref)
+                print("Digest: {0}".format(digest))
+                print("Manifest:")
+                print(json.dumps(manifest, indent=2, sort_keys=True))
+            else:
+                image = repo.image(ref)
+                print("Image ID: {0}".format(image.image_id))
 
 
 if __name__ == '__main__':
