@@ -116,7 +116,10 @@ class CLI(object):
                 print(json.dumps(manifest, indent=2, sort_keys=True))
             else:
                 image = repo.image(ref)
+                image_json = image.get_json()
                 print("Image ID: {0}".format(image.image_id))
+                print("Image JSON:")
+                print(json.dumps(image_json, indent=2, sort_keys=True))
 
 
 if __name__ == '__main__':
