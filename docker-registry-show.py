@@ -37,6 +37,9 @@ class CLI(object):
                                  action='store_false')
         self.parser.add_argument('--api-version', metavar='VER', type=int)
 
+        self.parser.add_argument('--authorization-service', metavar='AUTH_SERVICE', type=str,
+                                 help='authorization service URL (including scheme) (for registry v2 only)')
+
         self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
                                  help='registry URL (including scheme)')
         self.parser.add_argument('repository', metavar='REPOSITORY', nargs='?',
@@ -62,6 +65,7 @@ class CLI(object):
             kwargs['api_version'] = args.api_version
 
         client = DockerRegistryClient(args.registry[0],
+                                      auth_service_url=args.authorization_service,
                                       verify_ssl=args.verify_ssl,
                                       **kwargs)
 

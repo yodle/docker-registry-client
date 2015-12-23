@@ -5,7 +5,7 @@ from docker_registry_client.Repository import Repository
 
 
 class DockerRegistryClient(object):
-    def __init__(self, host, verify_ssl=None, api_version=None, username=None, password=None):
+    def __init__(self, host, verify_ssl=None, api_version=None, username=None, password=None, auth_service_url=""):
         """
         Constructor
 
@@ -14,11 +14,13 @@ class DockerRegistryClient(object):
         :param api_version: int, API version to require
         :param username: username to use for basic authentication when connecting to the registry
         :param password: password to use for basic authentication
+        :param auth_service_url: authorization service URL (including scheme, for v2 only)
         """
 
         self._base_client = BaseClient(host, verify_ssl=verify_ssl,
                                        api_version=api_version,
-                                       username=username, password=password)
+                                       username=username, password=password, 
+                                       auth_service_url=auth_service_url)
         self.api_version = self._base_client.version
         self._repositories = {}
         self._repositories_by_namespace = {}

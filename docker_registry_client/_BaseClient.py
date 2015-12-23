@@ -2,6 +2,7 @@ import logging
 from requests import get, put, delete
 from requests.exceptions import HTTPError
 import json
+from AuthorizationService import AuthorizationService
 
 # urllib3 throws some ssl warnings with older versions of python
 #   they're probably ok for the registry client to ignore
@@ -29,6 +30,7 @@ class CommonBaseClient(object):
            kwargs -> url formatting args
         """
         header = {'content-type': 'application/json'}
+
         if data:
             data = json.dumps(data)
         path = url.format(**kwargs)
@@ -140,33 +142,44 @@ class BaseClientV2(CommonBaseClient):
     BLOB = '/v2/{name}/blobs/{digest}'
 
     def __init__(self, *args, **kwargs):
+        auth_service_url = kwargs.pop("auth_service_url", "")
         super(BaseClientV2, self).__init__(*args, **kwargs)
         self._manifest_digests = {}
+        self.auth = AuthorizationService(registry=self.host,
+                                         url=auth_service_url,
+                                         verify=self.method_kwargs.get('verify', False),
+                                         auth=self.method_kwargs.get('auth', None))
 
     @property
     def version(self):
         return 2
 
     def check_status(self):
+        self.auth.desired_scope = 'registry:catalog:*'
         return self._http_call('/v2/', get)
 
     def catalog(self):
+        self.auth.desired_scope = 'registry:catalog:*'
         return self._http_call('/v2/_catalog', get)
 
     def get_repository_tags(self, name):
+        self.auth.desired_scope = 'repository:%s:*' % name
         return self._http_call(self.LIST_TAGS, get, name=name)
 
     def get_manifest_and_digest(self, name, reference):
+        self.auth.desired_scope = 'repository:%s:*' % name
         response = self._http_response(self.MANIFEST, get,
                                        name=name, reference=reference)
         self._cache_manifest_digest(name, reference, response=response)
         return (response.json(), self._manifest_digests[name, reference])
 
     def delete_manifest(self, name, digest):
+        self.auth.desired_scope = 'repository:%s:*' % name
         return self._http_call(self.MANIFEST, delete,
                                name=name, reference=digest)
 
     def delete_blob(self, name, digest):
+        self.auth.desired_scope = 'repository:%s:*' % name
         return self._http_call(self.BLOB, delete,
                                name=name, digest=digest)
 
@@ -178,16 +191,48 @@ class BaseClientV2(CommonBaseClient):
         untrusted_digest = response.headers.get('Docker-Content-Digest')
         self._manifest_digests[(name, reference)] = untrusted_digest
 
+    def _http_response(self, url, method, data=None, **kwargs):
+        """url -> full target url
+           method -> method from requests
+           data -> request body
+           kwargs -> url formatting args
+        """
 
-def BaseClient(host, verify_ssl=None, api_version=None, username=None, password=None):
+        header = {'content-type': 'application/json'}
+
+        # Token specific part. We add the token in the header if necessary
+        if self.auth.token_required:
+            if not self.auth.token or self.auth.desired_scope != self.auth.scope:
+                logger.debug("Getting new token for scope: %s", self.auth.desired_scope)
+                self.auth.get_new_token()
+
+            header['Authorization'] = 'Bearer %s' % self.auth.token
+
+        if data:
+            data = json.dumps(data)
+        path = url.format(**kwargs)
+        logger.debug("%s %s", method.__name__.upper(), path)
+        response = method(self.host + path,
+                          data=data, headers=header, **self.method_kwargs)
+        logger.debug("%s %s", response.status_code, response.reason)
+        if not response.ok:
+            logger.error("Error response: %r", response.text)
+            response.raise_for_status()
+
+        return response
+
+
+def BaseClient(host, verify_ssl=None, api_version=None, username=None, password=None, auth_service_url=""):
     if api_version == 1:
         return BaseClientV1(host, verify_ssl=verify_ssl, username=username, password=password)
     elif api_version == 2:
-        return BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password)
+        return BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password,
+                            auth_service_url=auth_service_url)
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
-        v2_client = BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password)
+        v2_client = BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password,
+                                 auth_service_url=auth_service_url)
         try:
             v2_client.check_status()
         except HTTPError as e:
