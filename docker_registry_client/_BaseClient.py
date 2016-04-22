@@ -13,13 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 class CommonBaseClient(object):
-    def __init__(self, host, verify_ssl=None):
+    def __init__(self, host, verify_ssl=None, username=None, password=None):
         self.host = host
 
         self.method_kwargs = {}
         if verify_ssl is not None:
             self.method_kwargs['verify'] = verify_ssl
-
+        if username is not None and password is not None:
+            self.method_kwargs['auth'] = (username, password)
+    
     def _http_response(self, url, method, data=None, **kwargs):
         """url -> full target url
            method -> method from requests
@@ -177,21 +179,21 @@ class BaseClientV2(CommonBaseClient):
         self._manifest_digests[(name, reference)] = untrusted_digest
 
 
-def BaseClient(host, verify_ssl=None, api_version=None):
+def BaseClient(host, verify_ssl=None, api_version=None, username=None, password=None):
     if api_version == 1:
-        return BaseClientV1(host, verify_ssl=verify_ssl)
+        return BaseClientV1(host, verify_ssl=verify_ssl, username=username, password=password)
     elif api_version == 2:
-        return BaseClientV2(host, verify_ssl=verify_ssl)
+        return BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password)
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
-        v2_client = BaseClientV2(host, verify_ssl=verify_ssl)
+        v2_client = BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password)
         try:
             v2_client.check_status()
         except HTTPError as e:
             if e.response.status_code == 404:
                 logger.debug("falling back to v1 API")
-                return BaseClientV1(host, verify_ssl=verify_ssl)
+                return BaseClientV1(host, verify_ssl=verify_ssl, username=username, password=password)
 
             raise
         else:
