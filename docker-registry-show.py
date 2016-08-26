@@ -36,6 +36,8 @@ class CLI(object):
         self.parser.add_argument('--no-verify-ssl', dest='verify_ssl',
                                  action='store_false')
         self.parser.add_argument('--api-version', metavar='VER', type=int)
+        self.parser.add_argument('--username', metavar='USERNAME')
+        self.parser.add_argument('--password', metavar='PASSWORD')
 
         self.parser.add_argument('--authorization-service', metavar='AUTH_SERVICE', type=str,
                                  help='authorization service URL (including scheme) (for registry v2 only)')
@@ -60,7 +62,11 @@ class CLI(object):
 
         logging.basicConfig(**basic_config_args)
 
-        kwargs = {}
+        kwargs = {
+            'username': args.username,
+            'password': args.password,
+        }
+
         if args.api_version:
             kwargs['api_version'] = args.api_version
 
