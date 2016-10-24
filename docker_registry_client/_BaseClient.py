@@ -198,7 +198,8 @@ class BaseClientV2(CommonBaseClient):
            kwargs -> url formatting args
         """
 
-        header = {'content-type': 'application/json'}
+        header = {'content-type': 'application/json',
+                  'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
 
         # Token specific part. We add the token in the header if necessary
         if self.auth.token_required:
