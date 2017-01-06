@@ -2,7 +2,7 @@ import logging
 from requests import get, put, delete
 from requests.exceptions import HTTPError
 import json
-from AuthorizationService import AuthorizationService
+from docker_registry_client.AuthorizationService import AuthorizationService
 
 # urllib3 throws some ssl warnings with older versions of python
 #   they're probably ok for the registry client to ignore

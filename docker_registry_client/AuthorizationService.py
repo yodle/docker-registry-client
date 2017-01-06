@@ -1,4 +1,8 @@
-import urlparse
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+#import urlparse
 import requests
 import logging
 
@@ -17,7 +21,7 @@ class AuthorizationService(object):
     """
     def __init__(self, registry, url="", auth=None, verify=False):
         # Registry ip:port
-        self.registry = urlparse.urlsplit(registry).netloc
+        self.registry = urlsplit(registry).netloc
         # Service url, ip:port
         self.url = url
         # Authentication (user, password) or None. Used by request to do basicauth
@@ -34,7 +38,7 @@ class AuthorizationService(object):
 
         # If we have no url then token are not required. get_new_token will not be called
         if url:
-            split = urlparse.urlsplit(url)
+            split = urlsplit(url)
             # user in url will take precedence over giver username
             if split.username and split.password:
                 self.auth = (split.username, split.password)
