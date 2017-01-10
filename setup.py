@@ -10,7 +10,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author='John Downs',
     author_email='john.downs@yodle.com',
-    url='https://github.com/yodl/docker-registry-client',
+    url='https://github.com/yodle/docker-registry-client',
     license="Apache License 2.0",
     classifiers=[
         'Development Status :: 3 - Alpha',
