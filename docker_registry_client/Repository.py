@@ -12,8 +12,7 @@ class BaseRepository(object):
     @property
     def name(self):
         if self.namespace:
-            return "{namespace}/{repository}".format(namespace=self.namespace,
-                                                     repository=self.repository)
+            return "{self.namespace}/{self.repository}".format(self=self)
         return self.repository
 
 

@@ -22,7 +22,7 @@ class CommonBaseClient(object):
             self.method_kwargs['verify'] = verify_ssl
         if username is not None and password is not None:
             self.method_kwargs['auth'] = (username, password)
-    
+
     def _http_response(self, url, method, data=None, **kwargs):
         """url -> full target url
            method -> method from requests
@@ -145,10 +145,12 @@ class BaseClientV2(CommonBaseClient):
         auth_service_url = kwargs.pop("auth_service_url", "")
         super(BaseClientV2, self).__init__(*args, **kwargs)
         self._manifest_digests = {}
-        self.auth = AuthorizationService(registry=self.host,
-                                         url=auth_service_url,
-                                         verify=self.method_kwargs.get('verify', False),
-                                         auth=self.method_kwargs.get('auth', None))
+        self.auth = AuthorizationService(
+            registry=self.host,
+            url=auth_service_url,
+            verify=self.method_kwargs.get('verify', False),
+            auth=self.method_kwargs.get('auth', None),
+        )
 
     @property
     def version(self):
@@ -198,14 +200,22 @@ class BaseClientV2(CommonBaseClient):
            kwargs -> url formatting args
         """
 
-        header = {'content-type': 'application/json',
-                  'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        header = {
+            'content-type': 'application/json',
+            'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+        }
 
         # Token specific part. We add the token in the header if necessary
-        if self.auth.token_required:
-            if not self.auth.token or self.auth.desired_scope != self.auth.scope:
-                logger.debug("Getting new token for scope: %s", self.auth.desired_scope)
-                self.auth.get_new_token()
+        auth = self.auth
+        token_required = auth.token_required
+        token = auth.token
+        desired_scope = auth.desired_scope
+        scope = auth.scope
+
+        if token_required:
+            if not token or desired_scope != scope:
+                logger.debug("Getting new token for scope: %s", desired_scope)
+                auth.get_new_token()
 
             header['Authorization'] = 'Bearer %s' % self.auth.token
 
@@ -223,23 +233,33 @@ class BaseClientV2(CommonBaseClient):
         return response
 
 
-def BaseClient(host, verify_ssl=None, api_version=None, username=None, password=None, auth_service_url=""):
+def BaseClient(host, verify_ssl=None, api_version=None, username=None,
+               password=None, auth_service_url=""):
     if api_version == 1:
-        return BaseClientV1(host, verify_ssl=verify_ssl, username=username, password=password)
+        return BaseClientV1(
+            host, verify_ssl=verify_ssl, username=username, password=password,
+        )
     elif api_version == 2:
-        return BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password,
-                            auth_service_url=auth_service_url)
+        return BaseClientV2(
+            host, verify_ssl=verify_ssl, username=username, password=password,
+            auth_service_url=auth_service_url,
+        )
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
-        v2_client = BaseClientV2(host, verify_ssl=verify_ssl, username=username, password=password,
-                                 auth_service_url=auth_service_url)
+        v2_client = BaseClientV2(
+            host, verify_ssl=verify_ssl, username=username, password=password,
+            auth_service_url=auth_service_url,
+        )
         try:
             v2_client.check_status()
         except HTTPError as e:
             if e.response.status_code == 404:
                 logger.debug("falling back to v1 API")
-                return BaseClientV1(host, verify_ssl=verify_ssl, username=username, password=password)
+                return BaseClientV1(
+                    host, verify_ssl=verify_ssl, username=username,
+                    password=password,
+                )
 
             raise
         else:
