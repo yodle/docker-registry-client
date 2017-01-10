@@ -2,11 +2,9 @@ from __future__ import absolute_import
 
 from docker_registry_client.Repository import Repository
 from docker_registry_client._BaseClient import BaseClientV1, BaseClientV2
-from tests.mock_registry import (mock_v1_registry,
-                                 mock_v2_registry,
-                                 TEST_NAMESPACE,
-                                 TEST_REPO,
-                                 TEST_NAME)
+from drc_test_utils.mock_registry import (
+    mock_v1_registry, mock_v2_registry, TEST_NAMESPACE, TEST_REPO, TEST_NAME,
+)
 
 
 class TestRepository(object):

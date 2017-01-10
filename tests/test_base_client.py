@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 
 from docker_registry_client._BaseClient import BaseClientV1, BaseClientV2
-from tests.mock_registry import (mock_v1_registry,
-                                 mock_v2_registry,
-                                 TEST_NAME,
-                                 TEST_TAG)
+from drc_test_utils.mock_registry import (
+    mock_v1_registry, mock_v2_registry, TEST_NAME, TEST_TAG,
+)
 
 
 class TestBaseClientV1(object):
