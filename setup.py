@@ -1,7 +1,8 @@
 from setuptools import setup, find_packages
+
 setup(
-    name="docker_registry_client",
-    version="0.4",
+    name="docker-registry-client",
+    version="0.4.0",
     description='Client for Docker Registry V1',
     author='John Downs',
     author_email='john.downs@yodle.com',
@@ -11,9 +12,15 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: System :: Software Distribution',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 2.7'],
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
     keywords='docker docker-registry REST',
     packages=find_packages(),
-    install_requires=['requests>=2.4.3',
-                      'flexmock'],
+    install_requires=[
+        'requests>=2.4.3, <3.0.0',
+    ],
 )

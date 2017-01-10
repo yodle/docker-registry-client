@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from docker_registry_client.Image import Image
 from docker_registry_client._BaseClient import BaseClientV1
-from tests.mock_registry import mock_v1_registry
+from drc_test_utils.mock_registry import mock_v1_registry
 
 
 class TestImage(object):
