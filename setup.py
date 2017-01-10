@@ -27,5 +27,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'requests>=2.4.3, <3.0.0',
+        'ecdsa>=0.13.0, <0.14.0',
+        'jws>=0.1.3, <0.2.0',
     ],
 )

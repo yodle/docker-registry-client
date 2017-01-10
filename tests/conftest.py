@@ -26,7 +26,7 @@ def wait_till_up(url, attempts):
         requests.get(url)
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.yield_fixture()
 def registry(docker_client):
     cli = docker_client
     cli.pull('registry', '2')
