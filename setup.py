@@ -1,11 +1,16 @@
 from setuptools import setup, find_packages
 
+readme = open('README.rst').read()
+history = open('CHANGES.rst').read().replace('.. :changelog:', '')
+
 setup(
     name="docker-registry-client",
     version="0.4.0",
-    description='Client for Docker Registry V1',
+    description='Client for Docker Registry V1 and V2',
+    long_description=readme + '\n\n' + history,
     author='John Downs',
     author_email='john.downs@yodle.com',
+    url='https://github.com/yodl/docker-registry-client',
     license="Apache License 2.0",
     classifiers=[
         'Development Status :: 3 - Alpha',
