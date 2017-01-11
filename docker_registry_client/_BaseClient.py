@@ -3,6 +3,7 @@ from requests import get, put, delete
 from requests.exceptions import HTTPError
 import json
 from docker_registry_client.AuthorizationService import AuthorizationService
+from .manifest import sign as sign_manifest
 
 # urllib3 throws some ssl warnings with older versions of python
 #   they're probably ok for the registry client to ignore
@@ -136,10 +137,23 @@ class BaseClientV1(CommonBaseClient):
                                namespace=namespace, repository=repository)
 
 
+class _Manifest(object):
+    def __init__(self, content, type, digest):
+        self._content = content
+        self._type = type
+        self._digest = digest
+
+
+BASE_CONTENT_TYPE = 'application/vnd.docker.distribution.manifest'
+
+
 class BaseClientV2(CommonBaseClient):
     LIST_TAGS = '/v2/{name}/tags/list'
     MANIFEST = '/v2/{name}/manifests/{reference}'
     BLOB = '/v2/{name}/blobs/{digest}'
+    schema_1_signed = BASE_CONTENT_TYPE + '.v1+prettyjws'
+    schema_1 = BASE_CONTENT_TYPE + '.v1+json'
+    schema_2 = BASE_CONTENT_TYPE + '.v2+json'
 
     def __init__(self, *args, **kwargs):
         auth_service_url = kwargs.pop("auth_service_url", "")
@@ -169,11 +183,33 @@ class BaseClientV2(CommonBaseClient):
         return self._http_call(self.LIST_TAGS, get, name=name)
 
     def get_manifest_and_digest(self, name, reference):
+        m = self.get_manifest(name, reference)
+        return m._content, m._digest
+
+    def get_manifest(self, name, reference):
         self.auth.desired_scope = 'repository:%s:*' % name
-        response = self._http_response(self.MANIFEST, get,
-                                       name=name, reference=reference)
+        response = self._http_response(
+            self.MANIFEST, get, name=name, reference=reference,
+            schema=self.schema_1_signed,
+        )
         self._cache_manifest_digest(name, reference, response=response)
-        return (response.json(), self._manifest_digests[name, reference])
+        return _Manifest(
+            content=response.json(),
+            type=response.headers.get('Content-Type', 'application/json'),
+            digest=self._manifest_digests[name, reference],
+        )
+
+    def put_manifest(self, name, reference, manifest):
+        self.auth.desired_scope = 'repository:%s:*' % name
+        content = {}
+        content.update(manifest._content)
+        content.update({'name': name, 'tag': reference})
+
+        return self._http_call(
+            self.MANIFEST, put, data=sign_manifest(content),
+            content_type=self.schema_1_signed, schema=self.schema_1_signed,
+            name=name, reference=reference,
+        )
 
     def delete_manifest(self, name, digest):
         self.auth.desired_scope = 'repository:%s:*' % name
@@ -193,16 +229,20 @@ class BaseClientV2(CommonBaseClient):
         untrusted_digest = response.headers.get('Docker-Content-Digest')
         self._manifest_digests[(name, reference)] = untrusted_digest
 
-    def _http_response(self, url, method, data=None, **kwargs):
+    def _http_response(self, url, method, data=None, content_type=None,
+                       schema=None, **kwargs):
         """url -> full target url
            method -> method from requests
            data -> request body
            kwargs -> url formatting args
         """
 
+        if schema is None:
+            schema = self.schema_2
+
         header = {
-            'content-type': 'application/json',
-            'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+            'content-type': content_type or 'application/json',
+            'Accept': schema,
         }
 
         # Token specific part. We add the token in the header if necessary
@@ -219,8 +259,9 @@ class BaseClientV2(CommonBaseClient):
 
             header['Authorization'] = 'Bearer %s' % self.auth.token
 
-        if data:
+        if data and not content_type:
             data = json.dumps(data)
+
         path = url.format(**kwargs)
         logger.debug("%s %s", method.__name__.upper(), path)
         response = method(self.host + path,
