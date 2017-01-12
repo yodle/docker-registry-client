@@ -1,4 +1,4 @@
-0.5.1 (Unreleased)
+0.5.1 (2017-01-12)
 ------------------
 
 - Fixes to release process with zest
