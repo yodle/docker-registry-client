@@ -5,7 +5,7 @@ history = open('CHANGES.rst').read().replace('.. :changelog:', '')
 
 setup(
     name="docker-registry-client",
-    version="0.4.1",
+    version='0.5.0',
     description='Client for Docker Registry V1 and V2',
     long_description=readme + '\n\n' + history,
     author='John Downs',
