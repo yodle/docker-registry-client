@@ -1,7 +1,8 @@
 0.5.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Remove error logging when exception raised.
+  (`Issue #37 <https://github.com/yodle/docker-registry-client/pull/37>`_)
 
 
 0.5.1 (2017-01-12)

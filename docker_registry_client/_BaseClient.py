@@ -39,9 +39,7 @@ class CommonBaseClient(object):
         response = method(self.host + path,
                           data=data, headers=header, **self.method_kwargs)
         logger.debug("%s %s", response.status_code, response.reason)
-        if not response.ok:
-            logger.error("Error response: %r", response.text)
-            response.raise_for_status()
+        response.raise_for_status()
 
         return response
 
@@ -55,12 +53,7 @@ class CommonBaseClient(object):
         if not response.content:
             return {}
 
-        try:
-            return response.json()
-        except ValueError:
-            logger.error("Unable to decode json for response %r, url %s",
-                         response.text, url.format(**kwargs))
-            raise
+        return response.json()
 
 
 class BaseClientV1(CommonBaseClient):
@@ -267,9 +260,7 @@ class BaseClientV2(CommonBaseClient):
         response = method(self.host + path,
                           data=data, headers=header, **self.method_kwargs)
         logger.debug("%s %s", response.status_code, response.reason)
-        if not response.ok:
-            logger.error("Error response: %r", response.text)
-            response.raise_for_status()
+        response.raise_for_status()
 
         return response
 
