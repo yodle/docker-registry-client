@@ -1,3 +1,8 @@
+0.5.1 (Unreleased)
+------------------
+
+- Fixes to release process with zest
+
 0.5.0 (2017-01-12)
 ------------------
 
