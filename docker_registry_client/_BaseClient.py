@@ -2,7 +2,7 @@ import logging
 from requests import get, put, delete
 from requests.exceptions import HTTPError
 import json
-from docker_registry_client.AuthorizationService import AuthorizationService
+from .AuthorizationService import AuthorizationService
 from .manifest import sign as sign_manifest
 
 # urllib3 throws some ssl warnings with older versions of python

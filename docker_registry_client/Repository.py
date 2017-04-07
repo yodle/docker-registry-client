@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from docker_registry_client.Image import Image
+from .Image import Image
 
 
 class BaseRepository(object):
