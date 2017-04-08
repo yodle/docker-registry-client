@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from docker_registry_client.Image import Image
+from .Image import Image
 
 
 class BaseRepository(object):
@@ -36,7 +36,10 @@ class RepositoryV1(BaseRepository):
         if self._images is None:
             self.refresh()
 
-        return list(self._images.keys())
+        if type(self._images) is list:
+            return list(taginfo['name'] for taginfo in self._images)
+        else:
+            return list(self._images.keys())
 
     def data(self, tag):
         return self._client.get_tag_json(self.namespace, self.repository, tag)

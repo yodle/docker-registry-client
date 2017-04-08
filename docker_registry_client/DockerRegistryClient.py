@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-from docker_registry_client._BaseClient import BaseClient
-from docker_registry_client.Repository import Repository
+from ._BaseClient import BaseClient
+from .Repository import Repository
 
 
 class DockerRegistryClient(object):
