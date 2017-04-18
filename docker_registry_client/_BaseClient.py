@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class CommonBaseClient(object):
-    def __init__(self, host, verify_ssl=None, username=None, password=None):
+    def __init__(self, host, verify_ssl=None, username=None, password=None, api_timeout=None):
         self.host = host
 
         self.method_kwargs = {}
@@ -23,6 +23,8 @@ class CommonBaseClient(object):
             self.method_kwargs['verify'] = verify_ssl
         if username is not None and password is not None:
             self.method_kwargs['auth'] = (username, password)
+        if api_timeout is not None:
+            self.method_kwargs['timeout'] = api_timeout
 
     def _http_response(self, url, method, data=None, **kwargs):
         """url -> full target url
@@ -157,6 +159,7 @@ class BaseClientV2(CommonBaseClient):
             url=auth_service_url,
             verify=self.method_kwargs.get('verify', False),
             auth=self.method_kwargs.get('auth', None),
+            api_timeout=self.method_kwargs.get('api_timeout')
         )
 
     @property
@@ -266,21 +269,21 @@ class BaseClientV2(CommonBaseClient):
 
 
 def BaseClient(host, verify_ssl=None, api_version=None, username=None,
-               password=None, auth_service_url=""):
+               password=None, auth_service_url="", api_timeout=None):
     if api_version == 1:
         return BaseClientV1(
-            host, verify_ssl=verify_ssl, username=username, password=password,
+            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
         )
     elif api_version == 2:
         return BaseClientV2(
-            host, verify_ssl=verify_ssl, username=username, password=password,
+            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
             auth_service_url=auth_service_url,
         )
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
         v2_client = BaseClientV2(
-            host, verify_ssl=verify_ssl, username=username, password=password,
+            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
             auth_service_url=auth_service_url,
         )
         try:
@@ -290,7 +293,7 @@ def BaseClient(host, verify_ssl=None, api_version=None, username=None,
                 logger.debug("falling back to v1 API")
                 return BaseClientV1(
                     host, verify_ssl=verify_ssl, username=username,
-                    password=password,
+                    password=password, api_timeout=api_timeout,
                 )
 
             raise
