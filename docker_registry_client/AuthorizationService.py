@@ -19,7 +19,8 @@ class AuthorizationService(object):
     authenticate to the registry. Token has to be renew each time we change
     "scope".
     """
-    def __init__(self, registry, url="", auth=None, verify=False, api_timeout=None):
+    def __init__(self, registry, url="", auth=None, verify=False,
+                 api_timeout=None):
         # Registry ip:port
         self.registry = urlsplit(registry).netloc
         # Service url, ip:port
@@ -55,7 +56,8 @@ class AuthorizationService(object):
     def get_new_token(self):
         rsp = requests.get("%s/v2/token?service=%s&scope=%s" %
                            (self.url, self.registry, self.desired_scope),
-                           auth=self.auth, verify=self.verify, timeout=self.api_timeout)
+                           auth=self.auth, verify=self.verify,
+                           timeout=self.api_timeout)
         if not rsp.ok:
             logger.error("Can't get token for authentication")
             self.token = ""

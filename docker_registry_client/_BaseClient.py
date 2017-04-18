@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class CommonBaseClient(object):
-    def __init__(self, host, verify_ssl=None, username=None, password=None, api_timeout=None):
+    def __init__(self, host, verify_ssl=None, username=None, password=None,
+                 api_timeout=None):
         self.host = host
 
         self.method_kwargs = {}
@@ -272,19 +273,20 @@ def BaseClient(host, verify_ssl=None, api_version=None, username=None,
                password=None, auth_service_url="", api_timeout=None):
     if api_version == 1:
         return BaseClientV1(
-            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
+            host, verify_ssl=verify_ssl, username=username, password=password,
+            api_timeout=api_timeout,
         )
     elif api_version == 2:
         return BaseClientV2(
-            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
-            auth_service_url=auth_service_url,
+            host, verify_ssl=verify_ssl, username=username, password=password,
+            auth_service_url=auth_service_url, api_timeout=api_timeout,
         )
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
         v2_client = BaseClientV2(
-            host, verify_ssl=verify_ssl, username=username, password=password, api_timeout=api_timeout,
-            auth_service_url=auth_service_url,
+            host, verify_ssl=verify_ssl, username=username, password=password,
+            auth_service_url=auth_service_url, api_timeout=api_timeout,
         )
         try:
             v2_client.check_status()
