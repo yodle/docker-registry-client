@@ -11,6 +11,7 @@ It's useful for automating image tagging and untagging
 
 .. |Build Status| image:: https://travis-ci.org/yodle/docker-registry-client.svg?branch=master
    :target: https://travis-ci.org/yodle/docker-registry-client
+   :alt: Build status
 
 Usage
 -----
