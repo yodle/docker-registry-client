@@ -1,9 +1,7 @@
 Docker Registry Client
 ======================
 
-|Build Status|
-
-*Description*
+|Build Status| |pypi|
 
 A Python REST client for the Docker Registry
 
@@ -12,6 +10,10 @@ It's useful for automating image tagging and untagging
 .. |Build Status| image:: https://travis-ci.org/yodle/docker-registry-client.svg?branch=master
    :target: https://travis-ci.org/yodle/docker-registry-client
    :alt: Build status
+
+.. |pypi| image:: https://img.shields.io/pypi/v/docker-registry-client/0.5.1.svg
+    :target: https://pypi.python.org/pypi/docker-registry-client
+    :alt: Latest version released on PyPI
 
 Usage
 -----
