@@ -1,4 +1,4 @@
-0.5.2 (2017-05-25)
+0.5.2 (2017-06-16)
 ------------------
 
 - Fix for "AttributeError: 'list' object has no attribute 'keys'"
