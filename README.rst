@@ -11,7 +11,7 @@ It's useful for automating image tagging and untagging
    :target: https://travis-ci.org/yodle/docker-registry-client
    :alt: Build status
 
-.. |pypi| image:: https://img.shields.io/pypi/v/docker-registry-client/0.5.1.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/docker-registry-client.svg
     :target: https://pypi.python.org/pypi/docker-registry-client
     :alt: Latest version released on PyPI
 
